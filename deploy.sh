@@ -50,12 +50,4 @@ done
 echo "Ejecutando docker-compose..."
 docker compose up -d --build
 
-echo "Limpiando archivos .env..."
-for ruta in "${RUTAS_ENV_ENC[@]}"; do
-  if [ -f "$ruta/.env" ]; then
-    rm "$ruta/.env"
-    echo "Eliminado $ruta/.env"
-  fi
-done
-
 echo "Despliegue completo."
