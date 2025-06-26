@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  idUsuario     String     @id @default(uuid())
+  correo        String     @unique
+  nombre        String
+  contrasena    String
+  telefono      String?
+  idGrupoRef    String?
+  verificado    Boolean    @default(true)
+  creadoEn      DateTime   @default(now())
+  actualizadoEn DateTime   @updatedAt
+  Mensajes      Mensajes[]
+  grupos        Grupo[]
+}
+
+model Grupo {
+  idGrupo       String    @id @default(uuid())
+  nombreGrupo   String
+  creadoPor     String
+  Usuario       Usuario   @relation(fields: [creadoPor], references: [idUsuario])
+  creadoEn      DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
+  Tableros      Tablero[]
+}
+
+model CodigoVerificacion {
+  id         Int      @id @default(autoincrement())
+  correo     String   @unique
+  codigo     String
+  creadoEn   DateTime @default(now())
+  verificado Boolean  @default(false)
+}
+
+model Tablero {
+  idTablero            String                 @id @default(uuid())
+  idGrupoRef           String
+  Grupo                Grupo                  @relation(fields: [idGrupoRef], references: [idGrupo])
+  ipTablero            String                 @default("")
+  nombreTablero        String                 @default("")
+  protocoloTablero     String                 @default("")
+  topicoTablero        String                 @default("")
+  creadoEn             DateTime               @default(now())
+  actualizadoEn        DateTime               @updatedAt
+  ejemploMensaje       String                 @default("")
+  formatoMensaje       String                 @default("")
+  Mensajes             Mensajes[]
+  atributosJsonTablero AtributosJsonTablero[]
+}
+
+model AtributosJsonTablero {
+  idAtributo   String  @id @default(uuid())
+  idTableroRef String
+  clave        String
+  Tablero      Tablero @relation(fields: [idTableroRef], references: [idTablero], onDelete: Cascade)
+}
+
+enum TipoAnimacion {
+  PA_SCROLL_LEFT
+  PA_SCROLL_UP
+  PA_SCROLL_DOWN
+  PA_SCROLL_RIGHT
+  PA_WIPE
+  PA_CLOSING
+  PA_OPENING
+  PA_FADE
+  PA_NO_EFFECT
+}
+
+model Mensajes {
+  idMensaje     String        @id @default(uuid())
+  idTableroRef  String
+  mensaje       String
+  velocidad     Float         @default(1.0)
+  animacion     TipoAnimacion @default(PA_SCROLL_LEFT)
+  idUsuarioRef  String
+  Tablero       Tablero       @relation(fields: [idTableroRef], references: [idTablero], onDelete: Cascade)
+  Usuario       Usuario       @relation(fields: [idUsuarioRef], references: [idUsuario], onDelete: Cascade)
+  creadoEn      DateTime      @default(now())
+  actualizadoEn DateTime      @updatedAt
+}

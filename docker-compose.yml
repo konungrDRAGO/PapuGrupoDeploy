@@ -1,0 +1,93 @@
+services:
+  frontend1:
+    image: caddy:alpine
+    container_name: gps_frontend
+    volumes:
+      - ./GPS-Pasivo-Papugrupo/dist:/usr/share/caddy
+      - ./gps_Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - "6040:80"
+    networks:
+      - papuNetwork
+
+  frontend2:
+    image: caddy:alpine
+    container_name: table_frontend
+    volumes:
+      - ./Tablero-2.0-Papugrupo/frontend/dist:/usr/share/caddy
+      - ./tablero_Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - "6041:80"
+    networks:
+      - papuNetwork
+
+  gps_backend:
+    build: ./gps_backend
+    container_name: gps_backend
+    env_file:
+      - ./gps_backend/.env
+    depends_on:
+      - gps_database
+    ports:
+      - "6038:3000"
+    networks:
+      - papuNetwork
+
+  tablero_backend:
+    build: ./tablero_backend
+    container_name: tablero_backend
+    env_file:
+      - ./tablero_backend/.env
+    depends_on:
+      - tablero_database
+    ports:
+      - "6039:3000"
+    networks:
+      - papuNetwork
+
+  gps_database:
+    image: postgres:15
+    container_name: gps_database
+    environment:
+      POSTGRES_USER: papuser_gps
+      POSTGRES_PASSWORD: papupass_gps
+      POSTGRES_DB: papudb_gps
+    volumes:
+      - gps_database:/var/lib/postgresql/data
+    networks:
+      - papuNetwork
+
+
+  mqtt_broker:
+    image: eclipse-mosquitto:2
+    container_name: mqtt_broker
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    ports:
+      - "6001:9001"
+      - "6883:1883"
+    networks:
+      - papuNetwork
+
+  tablero_database:
+    image: postgres:15
+    container_name: tablero_database
+    environment:
+      POSTGRES_USER: papuser_tablero
+      POSTGRES_PASSWORD: papupass_tablero
+      POSTGRES_DB: papudb_tablero
+    volumes:
+      - tablero_database:/var/lib/postgresql/data
+    networks:
+      - papuNetwork
+  
+  
+
+volumes:
+  gps_database:
+  tablero_database:
+
+networks:
+  papuNetwork:

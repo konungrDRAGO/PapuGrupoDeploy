@@ -1,0 +1,26 @@
+FROM node:18
+
+# Instalar cliente PostgreSQL (útil para debug/migraciones)
+RUN apt-get update && apt-get install -y postgresql-client
+
+# Crear carpeta de trabajo
+WORKDIR /app
+
+# Copiar package.json primero para cache de npm install
+COPY package.json package-lock.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar el resto del código
+COPY . .
+
+# Generar Prisma Client
+RUN npx prisma generate
+
+# Copiar y permitir ejecutar el entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Comando de inicio
+CMD ["/entrypoint.sh"]

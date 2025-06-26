@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  idCliente     String    @id @default(uuid())
+  correo        String    @unique
+  nombre        String
+  contrasena    String
+  direccion     String
+  telefono      String
+  verificado    Boolean   @default(false)
+  creadoEn      DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
+  Mascota       Mascota[]
+}
+
+model CodigoVerificacion {
+  id         Int      @id @default(autoincrement())
+  correo     String   @unique
+  codigo     String
+  creadoEn   DateTime @default(now())
+  verificado Boolean  @default(false)
+}
+
+model Mascota {
+  idMascota            String    @id @default(uuid())
+  nombre               String
+  especie              String // perro, gato
+  raza                 String
+  sexo                 String // macho o hembra
+  fechaNacimiento      DateTime?
+  color                String?
+  tamano               String? // pequeño, mediano, grande
+  esterilizado         Boolean?
+  numeroMicrochip      String?   @unique
+  fechaMicrochip       DateTime?
+  urlFoto              String?
+  vacunasAlDia         Boolean?
+  fechaDesparasitacion DateTime?
+  condicionesMedicas   String?
+  nombreVeterinario    String?
+  telefonoVeterinario  String?
+  comportamiento       String? // tranquilo, juguetón, etc.
+  observaciones        String?
+  idClienteRef         String
+  cliente              Cliente   @relation(fields: [idClienteRef], references: [idCliente])
+  creadoEn             DateTime  @default(now())
+  actualizadoEn        DateTime  @updatedAt
+  ubicaciones Ubicacion[]
+}
+
+model Ubicacion {
+  idUbicacion  String   @id @default(uuid())
+  idMascota    String
+  latitud      Float
+  longitud     Float
+  fecha        DateTime @default(now())
+  nombreReportante  String?
+  comentario String?
+  mascota      Mascota  @relation(fields: [idMascota], references: [idMascota])
+
+  @@map("Ubicaciones") 
+}
+
