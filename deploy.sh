@@ -48,7 +48,7 @@ for ruta in "${RUTAS_FRONTEND[@]}"; do
 done
 
 echo "Ejecutando docker-compose..."
-docker-compose up -d --build
+docker compose up -d --build
 
 echo "Limpiando archivos .env..."
 for ruta in "${RUTAS_ENV_ENC[@]}"; do
