@@ -2,4 +2,3 @@
 generated/prisma/
 /prisma/node_modules
 .env
-/prisma/migrations
