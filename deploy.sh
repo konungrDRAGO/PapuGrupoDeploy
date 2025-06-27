@@ -22,11 +22,11 @@ for ruta in "${RUTAS_ENV_ENC[@]}"; do
     if [ $? -ne 0 ]; then
       echo "Error desencriptando $ruta/.env.enc"
       exit 1
-    FRO
+    fi 
   fi
 done
 
-# --- NUEVA SECCIÓN: Actualizar .env de Frontends con la IP del servidor ---
+
 echo "Actualizando archivos .env de frontend con la IP del servidor: $SERVER_IP"
 
 # Define the specific frontend .env file paths
