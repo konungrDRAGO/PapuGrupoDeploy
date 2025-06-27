@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { registrarUsuario } from '../services/usuario.service';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Spinner from '../components/Spinner.jsx';
 
 const RegistrarUsuario = () => {
     const [formData, setFormData] = useState({
@@ -23,9 +24,16 @@ const RegistrarUsuario = () => {
     const [submitSuccess, setSubmitSuccess] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+    const [cargando, setCargando] = useState(true);
+    
 
     const { login } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        // Establece cargando a false una vez que el componente se ha montado y renderizado
+        setCargando(false);
+    }, [])
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -185,164 +193,169 @@ const RegistrarUsuario = () => {
 
     return (
         <div className="min-h-screen w-full bg-[url('/assets/fondo.png')] flex items-center justify-center p-4 md:p-8">
-            <div className="bg-white bg-opacity-95 p-5 sm:p-6 md:p-8 rounded-lg shadow-lg  w-full max-w-xl">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4 md:mb-6">
-                    Registro
-                </h1>
+            {cargando && (  
+                <Spinner mensaje="Cargando vista..." />
+            )}
+            {!cargando && (
+                <div className="bg-white bg-opacity-95 p-5 sm:p-6 md:p-8 rounded-lg shadow-lg  w-full max-w-xl">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-4 md:mb-6">
+                        Registro
+                    </h1>
 
-                {submitSuccess && (
-                    <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
-                        {submitSuccess}
-                    </div>
-                )}
-
-                {submitError && (
-                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-                        {submitError}
-                    </div>
-                )}
-
-                <form className="space-y-4" onSubmit={handleSubmit}>
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                        <label className="text-gray-700 font-semibold sm:w-40">Nombre</label>
-                        <div className="flex flex-col w-full">
-                        <input
-                            type="text"
-                            name="nombre"
-                            placeholder='Ingrese su nombre'
-                            value={formData.nombre}
-                            onChange={handleChange}
-                            className="w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            required
-                        />
-                        {nombreError && (
-                            <p className="text-red-500 text-sm mt-1">{nombreError}</p>
-                        )}
+                    {submitSuccess && (
+                        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
+                            {submitSuccess}
                         </div>
-                    </div>
+                    )}
 
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                        <label className="text-gray-700 font-semibold sm:w-40">Dirección</label>
-                        <div className="flex flex-col w-full">
-                        <input
-                            type="text"
-                            name="direccion"
-                            placeholder='Ingrese su dirección'
-                            value={formData.direccion}
-                            onChange={handleChange}
-                            className="w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            required
-                        />
-                        {direccionError && (
-                            <p className="text-red-500 text-sm mt-1">{direccionError}</p>
-                        )}
+                    {submitError && (
+                        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+                            {submitError}
                         </div>
-                    </div>
+                    )}
 
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                        <label className="text-gray-700 font-semibold sm:w-40">N° Teléfono</label>
-                        <div className="flex flex-col w-full">
-                        <input
-                            type="tel"
-                            name="telefono"
-                            placeholder='Ingrese su número de teléfono (9 dígitos)'
-                            value={formData.telefono}
-                            onChange={handleChange}
-                            className="w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            required
-                        />
-                        {telefonoError && (
-                            <p className="text-red-500 text-sm mt-1">{telefonoError}</p>
-                        )}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-4">
-                        <label className="text-gray-700 font-semibold sm:w-40">Correo</label>
-                        <div className="flex flex-col w-full">
+                    <form className="space-y-4" onSubmit={handleSubmit}>
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                            <label className="text-gray-700 font-semibold sm:w-40">Nombre</label>
+                            <div className="flex flex-col w-full">
                             <input
-                                type="email"
-                                name="correo"
-                                placeholder='Ingrese su correo electrónico'
-                                value={formData.correo}
-                                onChange={handleChange}
-                                className={`w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 ${emailError ? 'border-red-500 focus:ring-red-400' : 'focus:ring-blue-400'}`}
-                                required
-                            />
-                            {emailError && (
-                                <p className="text-red-500 text-sm mt-1">{emailError}</p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                        <label className="text-gray-700 font-semibold sm:w-40">Contraseña</label>
-                        <div className="relative w-full">
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                name="contrasena"
-                                placeholder='Ingrese su contraseña'
-                                value={formData.contrasena}
+                                type="text"
+                                name="nombre"
+                                placeholder='Ingrese su nombre'
+                                value={formData.nombre}
                                 onChange={handleChange}
                                 className="w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                                 required
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
-                                disabled={isSubmitting}
-                            >
-                                {showPassword ? (
-                                    <span className="text-sm">Ocultar</span>
-                                ) : (
-                                    <span className="text-sm">Mostrar</span>
-                                )}
-                            </button>
+                            {nombreError && (
+                                <p className="text-red-500 text-sm mt-1">{nombreError}</p>
+                            )}
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                        <label className="text-gray-700 font-semibold sm:w-40">Repetir contraseña</label>
-                        <div className="relative w-full">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                            <label className="text-gray-700 font-semibold sm:w-40">Dirección</label>
+                            <div className="flex flex-col w-full">
                             <input
-                                type={showRepeatPassword ? 'text' : 'password'}
-                                name="repetirContrasena"
-                                placeholder='Repita su contraseña'
-                                value={formData.repetirContrasena}
+                                type="text"
+                                name="direccion"
+                                placeholder='Ingrese su dirección'
+                                value={formData.direccion}
                                 onChange={handleChange}
-                                className={`w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 ${passwordError ? 'border-red-500 focus:ring-red-400' : 'focus:ring-blue-400'}`}
+                                className="w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                                 required
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowRepeatPassword(!showRepeatPassword)}
-                                className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
-                                disabled={isSubmitting}
-                            >
-                                {showRepeatPassword ? (
-                                    <span className="text-sm">Ocultar</span>
-                                ) : (
-                                    <span className="text-sm">Mostrar</span>
-                                )}
-                            </button>
-                        {passwordError && (
-                            <p className="text-red-500 text-sm mt-1">{passwordError}</p>
-                        )}
+                            {direccionError && (
+                                <p className="text-red-500 text-sm mt-1">{direccionError}</p>
+                            )}
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="pt-4">
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className={`w-full ${isSubmitting ? 'bg-gray-400' : 'bg-musgo hover:bg-musgo2'} text-black py-2 rounded-lg font-semibold transition duration-200`}
-                        >
-                            {isSubmitting ? 'Registrando...' : 'Registrar'}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                            <label className="text-gray-700 font-semibold sm:w-40">N° Teléfono</label>
+                            <div className="flex flex-col w-full">
+                            <input
+                                type="tel"
+                                name="telefono"
+                                placeholder='Ingrese su número de teléfono (9 dígitos)'
+                                value={formData.telefono}
+                                onChange={handleChange}
+                                className="w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                required
+                            />
+                            {telefonoError && (
+                                <p className="text-red-500 text-sm mt-1">{telefonoError}</p>
+                            )}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-4">
+                            <label className="text-gray-700 font-semibold sm:w-40">Correo</label>
+                            <div className="flex flex-col w-full">
+                                <input
+                                    type="email"
+                                    name="correo"
+                                    placeholder='Ingrese su correo electrónico'
+                                    value={formData.correo}
+                                    onChange={handleChange}
+                                    className={`w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 ${emailError ? 'border-red-500 focus:ring-red-400' : 'focus:ring-blue-400'}`}
+                                    required
+                                />
+                                {emailError && (
+                                    <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                            <label className="text-gray-700 font-semibold sm:w-40">Contraseña</label>
+                            <div className="relative w-full">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    name="contrasena"
+                                    placeholder='Ingrese su contraseña'
+                                    value={formData.contrasena}
+                                    onChange={handleChange}
+                                    className="w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                                    disabled={isSubmitting}
+                                >
+                                    {showPassword ? (
+                                        <span className="text-sm">Ocultar</span>
+                                    ) : (
+                                        <span className="text-sm">Mostrar</span>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                            <label className="text-gray-700 font-semibold sm:w-40">Repetir contraseña</label>
+                            <div className="relative w-full">
+                                <input
+                                    type={showRepeatPassword ? 'text' : 'password'}
+                                    name="repetirContrasena"
+                                    placeholder='Repita su contraseña'
+                                    value={formData.repetirContrasena}
+                                    onChange={handleChange}
+                                    className={`w-full bg-gray-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 ${passwordError ? 'border-red-500 focus:ring-red-400' : 'focus:ring-blue-400'}`}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowRepeatPassword(!showRepeatPassword)}
+                                    className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                                    disabled={isSubmitting}
+                                >
+                                    {showRepeatPassword ? (
+                                        <span className="text-sm">Ocultar</span>
+                                    ) : (
+                                        <span className="text-sm">Mostrar</span>
+                                    )}
+                                </button>
+                            {passwordError && (
+                                <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+                            )}
+                            </div>
+                        </div>
+
+                        <div className="pt-4">
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className={`w-full ${isSubmitting ? 'bg-gray-400' : 'bg-musgo hover:bg-musgo2'} text-black py-2 rounded-lg font-semibold transition duration-200`}
+                            >
+                                {isSubmitting ? 'Registrando...' : 'Registrar'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 };

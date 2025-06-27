@@ -12,7 +12,7 @@ const ModalQR = ({ idMascota, closeModal }) => {
   const modalRef = useRef(null);
   
  const urlBase = import.meta.env.VITE_URL_BASE;
- const urlBaseQR = `${urlBase}/registrar-ubicación`;
+ const urlBaseQR = `${urlBase}/registrar-ubicacion`;
 
   useEffect(() => {
     const fetchMascota = async () => {

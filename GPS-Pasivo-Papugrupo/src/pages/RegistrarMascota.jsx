@@ -76,7 +76,7 @@ const nuevaMascota = () => ({
 });
 
 const urlBase = import.meta.env.VITE_URL_BASE;
-const urlBaseQR = `${urlBase}/registrar-ubicación`;
+const urlBaseQR = `${urlBase}/registrar-ubicacion`;
 
 const RegistrarMascota = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);

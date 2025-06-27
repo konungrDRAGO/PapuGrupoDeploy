@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'; // Importa useEffect y useSt
 import { useLocation, useNavigate } from 'react-router-dom'; // Importa useLocation y useNavigate
 import { useAuth } from '../context/AuthContext'; // Importa useAuth para clearAuthMessage
 import Login from './Login';
+import Spinner from '../components/Spinner.jsx';
 
 export default function Landing() {
   const location = useLocation();
@@ -11,6 +12,8 @@ export default function Landing() {
 
   // Nuevo estado para el mensaje de sesión caducada
   const [sessionExpiredMessage, setSessionExpiredMessage] = useState('');
+  const [cargando, setCargando] = useState(true);
+  
 
   // Efecto para verificar el estado de la ubicación al cargar el componente
   useEffect(() => {
@@ -23,56 +26,64 @@ export default function Landing() {
       // Asegurarse de que el AuthContext también limpie su mensaje interno
       clearAuthMessage(); 
     }
+    setCargando(false);
   }, [location, navigate, clearAuthMessage]); // Dependencias
 
   return (
     <div className="min-h-screen w-full bg-[url('/assets/fondo.png')] bg-cover bg-center">
-      {/* Hero Section flotante */}
-      <div className="pt-5">
-        <div className="w-full bg-primary text-center py-12 px-6 shadow-md">
-          <h1 className="text-6xl md:text-7xl font-bold text-darkNeutral drop-shadow-lg">PET-GPS</h1>
-          <p className="mt-4 text-lg md:text-xl font-medium text-darkNeutral drop-shadow">
-            GPS Pasivo para Mascotas
-          </p>
-        </div>
-      </div>
-
-      {/* Mostrar el mensaje de sesión caducada si existe, ANTES del Login Box */}
-      {sessionExpiredMessage && (
-        <div className="flex justify-center mt-4 px-4"> {/* Centrar el mensaje */}
-          <div className="w-full md:w-100 p-2 bg-red-500 text-white rounded text-center shadow-md">
-            {sessionExpiredMessage}
+      {cargando && (  
+          <Spinner mensaje="Cargando vista..." />
+      )}
+      {!cargando && (
+        <>
+        {/* Hero Section flotante */}
+        <div className="pt-5">
+          <div className="w-full bg-primary text-center py-12 px-6 shadow-md">
+            <h1 className="text-6xl md:text-7xl font-bold text-darkNeutral drop-shadow-lg">PET-GPS</h1>
+            <p className="mt-4 text-lg md:text-xl font-medium text-darkNeutral drop-shadow">
+              GPS Pasivo para Mascotas
+            </p>
           </div>
         </div>
-      )}
 
-      {/* Contenedor principal con flexbox y espaciado adecuado */}
-      <div className="flex flex-col items-center justify-start p-4">
-        {/* Login Box flotante */}
-        <div className="w-full md:w-100 bg-white shadow-xl rounded-2xl p-6 text-left">
-          {/* PASAR EL MENSAJE AL COMPONENTE HIJO LOGIN */}
-          <Login sessionExpiredMessage={sessionExpiredMessage} />
-        </div>
-      </div>
-
-      {/* Content Section (más abajo) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-white rounded shadow overflow-hidden">
-            <img
-              src="assets/mascotas.jpg"
-              alt="Mascotas"
-              className="w-full h-100 object-cover"
-            />
-            <div className="p-4">
-              <h3 className="font-bold text-sm mb-1 text-darkNeutral">Día de la mascota</h3>
-              <p className="text-xs text-secondary text-darkNeutral">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur iaculis egestas gravida.
-              </p>
+        {/* Mostrar el mensaje de sesión caducada si existe, ANTES del Login Box */}
+        {sessionExpiredMessage && (
+          <div className="flex justify-center mt-4 px-4"> {/* Centrar el mensaje */}
+            <div className="w-full md:w-100 p-2 bg-red-500 text-white rounded text-center shadow-md">
+              {sessionExpiredMessage}
             </div>
           </div>
-        ))}
-      </div>
+        )}
+
+        {/* Contenedor principal con flexbox y espaciado adecuado */}
+        <div className="flex flex-col items-center justify-start p-4">
+          {/* Login Box flotante */}
+          <div className="w-full md:w-100 bg-white shadow-xl rounded-2xl p-6 text-left">
+            {/* PASAR EL MENSAJE AL COMPONENTE HIJO LOGIN */}
+            <Login sessionExpiredMessage={sessionExpiredMessage} />
+          </div>
+        </div>
+
+        {/* Content Section (más abajo) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-white rounded shadow overflow-hidden">
+              <img
+                src="assets/mascotas.jpg"
+                alt="Mascotas"
+                className="w-full h-100 object-cover"
+              />
+              <div className="p-4">
+                <h3 className="font-bold text-sm mb-1 text-darkNeutral">Día de la mascota</h3>
+                <p className="text-xs text-secondary text-darkNeutral">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur iaculis egestas gravida.
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+        </>
+      )}
     </div>
   );
 }

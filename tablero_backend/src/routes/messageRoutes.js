@@ -99,7 +99,21 @@ const tableroSchema = Joi.object({
     .default(TipoFormato.TEXTO_PLANO)
     .messages({
       'any.only': 'El formato del mensaje debe ser "TEXTO_PLANO" o "JSON" o "PAPUGRUPO".',
-    })
+    }),
+    // Atributos JSON (opcional, solo si formatoMensaje es JSON)
+    atributosJson: Joi.array()
+      .items(atributoJsonSchema)
+      .when('formatoMensaje', {
+        is: TipoFormato.JSON,
+        then: Joi.array().min(1).required().messages({
+          'array.min': 'Si el formato es JSON, se requiere al menos un atributo.',
+          'any.required': 'Si el formato es JSON, los atributos son obligatorios.',
+        }),
+      otherwise: Joi.forbidden(), // No permitir atributos si no es JSON
+      })
+      .messages({
+        'array.base': 'Los atributos JSON deben ser un arreglo.',
+      }),
 });
 
 
@@ -131,10 +145,23 @@ const updateTableroSchema = Joi.object({
       'string.empty': 'El topico no puede estar vacío.',
     }),
   formatoMensaje: Joi.string()
-    .valid(TipoFormato.TEXTO_PLANO, TipoFormato.PAPUGRUPO)
+    .valid(TipoFormato.TEXTO_PLANO, TipoFormato.PAPUGRUPO, TipoFormato.JSON)
     .messages({
-      'any.only': 'El formato del mensaje debe ser "TEXTO_PLANO" o "PAPUGRUPO".',
+      'any.only': 'El formato del mensaje debe ser "TEXTO_PLANO", "PAPUGRUPO" o "JSON".',
+    }),
+    atributosJson: Joi.array()
+    .items(atributoJsonSchema)
+    .when('formatoMensaje', {
+      is: TipoFormato.JSON,
+      then: Joi.array().min(1).required().messages({
+        'array.min': 'Si el formato es JSON, se requiere al menos un atributo.',
+        'any.required': 'Si el formato es JSON, los atributos son obligatorios.',
+      }),
+      otherwise: Joi.forbidden(),
     })
+    .messages({
+      'array.base': 'Los atributos JSON deben ser un arreglo.',
+    }),
 }).min(1).messages({ // Asegura que al menos un campo se esté actualizando
   'object.min': 'Se requiere al menos un campo para actualizar el tablero.',
 });
@@ -261,6 +288,13 @@ router.post('/add-board', async (req, res) => {
         protocoloTablero,
         topicoTablero,
         formatoMensaje, // Guardar el formato del mensaje
+        ...(formatoMensaje === TipoFormato.JSON && atributosJson && atributosJson.length > 0 && {
+          atributosJsonTablero: {
+            createMany: {
+              data: atributosJson.map(attr => ({ clave: attr.clave })),
+            },
+          },
+        }),
       },
     });
 
@@ -286,7 +320,7 @@ router.put('/update-board/:idTableroRef', async (req, res) => {
   const { error: bodyError, value } = updateTableroSchema.validate(req.body);
   if (bodyError) return res.status(400).json({ error: bodyError.details[0].message });
 
-  const { nombreTablero, ipTablero, topicoTablero, formatoMensaje } = value;
+  const { nombreTablero, ipTablero, topicoTablero, formatoMensaje, atributosJson } = value;
   const idGrupoRef = req.token.idGrupo;
 
   try {
@@ -294,7 +328,10 @@ router.put('/update-board/:idTableroRef', async (req, res) => {
       where: {
         idTablero: idTableroRef,
         idGrupoRef: idGrupoRef,
-      }
+      },
+      include: {
+        atributosJsonTablero: true, 
+      },
     });
 
     if (!tableroExistente) {
@@ -319,6 +356,26 @@ router.put('/update-board/:idTableroRef', async (req, res) => {
       return res.status(400).json({ error: 'No se proporcionaron datos para actualizar.' });
     }
 
+    // Manejar la actualización de atributos JSON
+    if (formatoMensaje === TipoFormato.JSON) {
+      // Eliminar atributos existentes y crear los nuevos
+      await prisma.atributosJsonTablero.deleteMany({
+       where: { idTableroRef: idTableroRef },
+      });
+      if (atributosJson.length > 0) {
+        await prisma.atributosJsonTablero.createMany({
+          data: atributosJson.map(attr => ({
+            idTableroRef: idTableroRef,
+            clave: attr.clave,
+          })),
+        });
+      }
+    } 
+    else if (tableroExistente.formatoMensaje === TipoFormato.JSON && (formatoMensaje === TipoFormato.TEXTO_PLANO || formatoMensaje === TipoFormato.PAPUGRUPO)) {
+      await prisma.atributosJsonTablero.deleteMany({
+        where: { idTableroRef: idTableroRef },
+      });
+    }
 
     const tableroActualizado = await prisma.tablero.update({
       where: {
@@ -424,6 +481,12 @@ router.get('/board/:idTableroRef', async (req, res) => {
             creadoEn: 'asc',
           },
         },
+        atributosJsonTablero: {
+          select: {
+            idAtributo: true,
+            clave: true,
+          },
+        },
       },
     });
 
@@ -484,58 +547,6 @@ router.post('/save-message', async (req, res) => {
       mensaje: nuevoMensaje.mensaje,
       animacion: nuevoMensaje.animacion,
       velocidad: nuevoMensaje.velocidad
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al crear el mensaje.' });
-  }
-});
-
-router.post('/save-message-JSON', async (req, res) => {
-
-  try {
-    console.log(req.body);
-    const { idTableroRef } = req.body;
-    const idUsuarioRef = req.token.idUsuario;
-    // Validar que el tablero existe
-    const tableroExiste = await prisma.tablero.findUnique({
-      where: { idTablero: idTableroRef }
-    });
-
-    console.log(tableroExiste)
-
-    if (!tableroExiste) {
-      return res.status(404).json({ error: 'El tablero especificado no existe.' });
-    }
-
-    // Validar que el usuario existe
-    const usuarioExiste = await prisma.usuario.findUnique({
-      where: { idUsuario: idUsuarioRef }
-    });
-
-    if (!usuarioExiste) {
-      return res.status(404).json({ error: 'El usuario especificado no existe.' });
-    }
-    
-
-    // Clonar req.body y eliminar la clave idTableroRef antes de guardar
-    const mensajeObj = { ...req.body };
-    delete mensajeObj.idTableroRef;
-
-    const mensajeString = JSON.stringify(mensajeObj);
-
-    const nuevoMensaje = await prisma.mensajes.create({
-      data: {
-      mensaje: mensajeString,
-      idTableroRef,
-      idUsuarioRef
-      },
-    });
-
-    res.status(201).json({
-      mensaje: req.body,
-      idTableroRef,
-      idUsuarioRef
     });
   } catch (err) {
     console.error(err);
