@@ -22,45 +22,46 @@ for ruta in "${RUTAS_ENV_ENC[@]}"; do
     if [ $? -ne 0 ]; then
       echo "Error desencriptando $ruta/.env.enc"
       exit 1
-    fi
+    FRO
   fi
 done
 
+# --- NUEVA SECCIÓN: Actualizar .env de Frontends con la IP del servidor ---
 echo "Actualizando archivos .env de frontend con la IP del servidor: $SERVER_IP"
 
 # Define the specific frontend .env file paths
 TABLERO_FRONTEND_ENV="./Tablero-2.0-Papugrupo/frontend/.env"
-GPS_FRONTEND_ENV="./GPS-Pasivo-Papugrupo/.env" # Assuming this is correct for GPS
+GPS_FRONTEND_ENV="./GPS-Pasivo-Papugrupo/.env" # Confirm this is the correct path for GPS frontend's .env
 
 # Update Tablero Frontend .env
 if [ -f "$TABLERO_FRONTEND_ENV" ]; then
   echo "Procesando $TABLERO_FRONTEND_ENV"
-  # VITE_BROKER_MQTT_URL='ws:mqtt_broker//:'  -> ws://${SERVER_IP}:6001
-  sed -i "s|VITE_BROKER_MQTT_URL='ws:mqtt_broker//:'|VITE_BROKER_MQTT_URL='ws://${SERVER_IP}:6001'|" "$TABLERO_FRONTEND_ENV"
-  # VITE_API_BACKEND=http://tablero_backend:  -> VITE_API_BACKEND=http://${SERVER_IP}:6039
-  sed -i "s|VITE_API_BACKEND=http://tablero_backend:|VITE_API_BACKEND=http://${SERVER_IP}:6039|" "$TABLERO_FRONTEND_ENV"
-  # Add VITE_URL_BASE if not present, or update if it is (based on your docker-compose.yml port 6041)
-  if ! grep -q "VITE_URL_BASE=" "$TABLERO_FRONTEND_ENV"; then
-    echo "VITE_URL_BASE=http://${SERVER_IP}:6041" >> "$TABLERO_FRONTEND_ENV"
-  else
-    sed -i "s|VITE_URL_BASE=.*|VITE_URL_BASE=http://${SERVER_IP}:6041|" "$TABLERO_FRONTEND_ENV"
-  fi
-  echo "  Updated $TABLERO_FRONTEND_ENV"
+  # VITE_BROKER_MQTT_URL='ws:mqtt_broker//:' -> VITE_BROKER_MQTT_URL='ws://${SERVER_IP}:6001'
+  sed -i "s|^VITE_BROKER_MQTT_URL=.*|VITE_BROKER_MQTT_URL='ws://${SERVER_IP}:6001'|" "$TABLERO_FRONTEND_ENV"
+
+  # VITE_API_BACKEND=http://tablero_backend: -> VITE_API_BACKEND=http://${SERVER_IP}:6039
+  sed -i "s|^VITE_API_BACKEND=.*|VITE_API_BACKEND=http://${SERVER_IP}:6039|" "$TABLERO_FRONTEND_ENV"
+
+  # --- Removed VITE_URL_BASE logic for Tablero Frontend as per user's request ---
+  echo "  Updated $TABLERO_FRONTEND_ENV (VITE_URL_BASE not modified)"
 else
   echo "  Warning: $TABLERO_FRONTEND_ENV not found."
 fi
 
+
 if [ -f "$GPS_FRONTEND_ENV" ]; then
   echo "Procesando $GPS_FRONTEND_ENV"
-  # VITE_API_BACKEND=http://localhost:7000  -> VITE_API_BACKEND=http://${SERVER_IP}:6038
-  sed -i "s|VITE_API_BACKEND=http://localhost:7000|VITE_API_BACKEND=http://${SERVER_IP}:6038|" "$GPS_FRONTEND_ENV"
-  # VITE_URL_BASE=http://localhost:5173  -> VITE_URL_BASE=http://${SERVER_IP}:6040
-  sed -i "s|VITE_URL_BASE=http://localhost:5173|VITE_URL_BASE=http://${SERVER_IP}:6040|" "$GPS_FRONTEND_ENV"
+  # VITE_API_BACKEND=http://localhost:7000 -> VITE_API_BACKEND=http://${SERVER_IP}:6038
+  sed -i "s|^VITE_API_BACKEND=.*|VITE_API_BACKEND=http://${SERVER_IP}:6038|" "$GPS_FRONTEND_ENV"
+  # VITE_URL_BASE=http://localhost:5173 -> VITE_URL_BASE=http://${SERVER_IP}:6040
+  sed -i "s|^VITE_URL_BASE=.*|VITE_URL_BASE=http://${SERVER_IP}:6040|" "$GPS_FRONTEND_ENV"
   echo "  Updated $GPS_FRONTEND_ENV"
 else
   echo "  Warning: $GPS_FRONTEND_ENV not found."
 fi
 
+
+# Lista de carpetas que contienen frontend con package.json
 RUTAS_FRONTEND=(
   "./Tablero-2.0-Papugrupo/frontend"
   "./GPS-Pasivo-Papugrupo"
