@@ -3,7 +3,7 @@
 read -sp "Ingresa la contraseña para desencriptar todos los .env.enc: " PASSWORD
 echo
 
-read -p "Ingresa la IP del servidor (e.g., 192.0.2.100 o midominio.com): " SERVER_IP
+read -p "Ingresa la IP del servidor: " SERVER_IP
 echo
 
 # Lista de rutas donde buscar archivos .env.enc
