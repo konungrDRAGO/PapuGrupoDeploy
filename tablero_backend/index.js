@@ -23,6 +23,6 @@ app.use('/api/auth',ensureJson, authRoutes);
 app.use('/api/board/',authenticateToken,messageRoutes);
 app.use('/api/user/',authenticateTokenNoGroup,userRoutes)
 
-app.listen(process.env.BACKEND_PORT, '0.0.0.0', () => 
-    console.log(`Servidor corriendo en http://0.0.0.0:${process.env.BACKEND_PORT}`)
+app.listen(process.env.BACKEND_PORT, () => 
+    console.log(`Servidor corriendo en http://localhost:${process.env.BACKEND_PORT}`)
   );

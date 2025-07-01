@@ -109,7 +109,7 @@ const tableroSchema = Joi.object({
           'array.min': 'Si el formato es JSON, se requiere al menos un atributo.',
           'any.required': 'Si el formato es JSON, los atributos son obligatorios.',
         }),
-      otherwise: Joi.forbidden(), // No permitir atributos si no es JSON
+      otherwise: Joi.array().max(0).optional(), // Si no es JSON, no se permiten atributos
       })
       .messages({
         'array.base': 'Los atributos JSON deben ser un arreglo.',
@@ -157,7 +157,7 @@ const updateTableroSchema = Joi.object({
         'array.min': 'Si el formato es JSON, se requiere al menos un atributo.',
         'any.required': 'Si el formato es JSON, los atributos son obligatorios.',
       }),
-      otherwise: Joi.forbidden(),
+      otherwise: Joi.array().max(0).optional(), // Si no es JSON, no se permiten atributos
     })
     .messages({
       'array.base': 'Los atributos JSON deben ser un arreglo.',
@@ -316,8 +316,9 @@ router.put('/update-board/:idTableroRef', async (req, res) => {
   }
 
   const { idTableroRef } = req.params;
-
   const { error: bodyError, value } = updateTableroSchema.validate(req.body);
+  console.log(bodyError);
+
   if (bodyError) return res.status(400).json({ error: bodyError.details[0].message });
 
   const { nombreTablero, ipTablero, topicoTablero, formatoMensaje, atributosJson } = value;
